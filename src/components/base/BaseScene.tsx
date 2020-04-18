@@ -86,6 +86,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     });
 
     const plane = new Mesh(planeGeometry, planeMaterial);
+    plane.name = "ground";
     plane.position.y = 0;
     plane.receiveShadow = true;
     this.scene.add(plane);
@@ -137,7 +138,8 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     // Controls
     const controls = new OrbitControls(this.camera, this.renderer.domElement);
     controls.target.set(0, 0, 0);
-    controls.maxDistance = 2000;
+    controls.maxDistance = 1000;
+    controls.minDistance = 100;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.1;
     controls.enableDamping = true;
@@ -228,7 +230,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
 
     if (intersects.length > 0) {
       const obj = intersects[0].object;
-
+      if (obj.name === "ground") return;
       if (this.clicked) this.selectedObject = obj;
       this.outlinePass.selectedObjects = [obj];
     }
