@@ -1,27 +1,52 @@
-import React, { Component } from "react";
-import Three from "./scene";
-import { CssBaseline } from "@material-ui/core";
+import React, { Component, ReactNode } from "react";
+import Three from "./components/scene";
+import { CssBaseline, ThemeProvider } from "@material-ui/core";
+import { StyleSheet, css } from "aphrodite";
 import { HUD } from "./components/HUD";
+import { Loader } from "./components/loader";
+import theme from "./themes/default";
 
-interface AppProp {}
-interface AppState {
-  checkedB: boolean;
-}
-class App extends Component<AppProp, AppState> {
-  constructor(prop: AppProp) {
+class App extends Component<{}, { loading: boolean }> {
+  constructor(prop: {}) {
     super(prop);
-
     this.state = {
-      checkedB: false,
+      loading: true,
     };
   }
-  render() {
+  componentDidMount() {
+    // setTimeout(() => {
+    //   this.setState({ loading: false });
+    // }, 1000);
+  }
+  get currentView(): ReactNode {
+    if (this.state.loading)
+      return (
+        <Loader
+          onLaunch={() => {
+            this.setState({ loading: false });
+          }}
+        />
+      );
     return (
-      <div className="App">
-        <CssBaseline />
-        <HUD />
+      <HUD>
         <Three />
-      </div>
+      </HUD>
+    );
+  }
+  render() {
+    const styles = StyleSheet.create({
+      root: {
+        overflow: "hidden",
+        height: "100vh",
+      },
+    });
+    return (
+      <ThemeProvider theme={theme}>
+        <div className={css(styles.root)}>
+          <CssBaseline />
+          {this.currentView}
+        </div>
+      </ThemeProvider>
     );
   }
 }

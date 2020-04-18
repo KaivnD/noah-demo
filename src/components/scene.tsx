@@ -9,10 +9,10 @@ import {
   SphereGeometry,
 } from "three";
 
-import { BaseScene } from "./components/base/BaseScene";
+import { BaseScene } from "./base/BaseScene";
 
-import model from "./abc.json";
-import eve from "./libs/eve";
+import model from "../abc.json";
+import eve from "../libs/eve";
 
 interface ThreeState {
   showHelper: boolean;
