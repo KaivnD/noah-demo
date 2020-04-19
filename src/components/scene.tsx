@@ -1,17 +1,22 @@
 import {
   Mesh,
   Color,
-  Shape,
-  Vector2,
-  ExtrudeBufferGeometry,
   MeshStandardMaterial,
-  Vector3,
-  SphereGeometry,
+  LoadingManager,
+  Object3D,
+  MeshStandardMaterialParameters,
+  Vector2,
+  Shape,
+  ExtrudeBufferGeometry,
+  Group,
 } from "three";
+
+import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader.js";
 
 import { BaseScene } from "./base/BaseScene";
 
-import model from "../abc.json";
+import axios from "axios";
+
 import eve from "../libs/eve";
 
 interface ThreeState {
@@ -19,8 +24,34 @@ interface ThreeState {
   clicked: boolean;
 }
 
-class Three extends BaseScene<{}, ThreeState> {
-  constructor(prop: {}) {
+interface Point2D {
+  x: number;
+  y: number;
+}
+
+interface BlockBuilding {
+  c: number;
+  h: number;
+  p: Point2D[];
+}
+
+interface BlockDetail {
+  a: BlockBuilding[];
+  b: Point2D[][];
+  t: {
+    p: Point2D;
+    s: number;
+  }[];
+}
+
+interface ThreeProp {
+  loading?: boolean;
+}
+
+class Three extends BaseScene<ThreeProp, ThreeState> {
+  blockMap: Map<string, BlockDetail>;
+
+  constructor(prop: ThreeProp) {
     super(prop);
 
     this.state = {
@@ -28,12 +59,34 @@ class Three extends BaseScene<{}, ThreeState> {
       clicked: false,
     };
 
+    this.blockMap = new Map();
+
     eve.on("changeLightPos", (v) => {
       if (!this.directionalLight1) return;
       this.directionalLight1.position.setY(v);
     });
+
+    eve.on("object-clicked", (name: string) => {
+      if (!this.scene || !name.startsWith("block")) return;
+      axios.get(`/demo/${name}.json`).then((res) => {
+        const block: BlockDetail = res.data;
+        this.blockMap.set(name, block);
+        eve.emit("open-hud", name);
+        // this.updateBlocks(name);
+      });
+    });
+
+    eve.on("block-reload", (name) => {
+      if (!this.scene || !name.startsWith("block")) return;
+      axios.get(`/demo/${name}-2.json`).then((res) => {
+        const block: BlockDetail = res.data;
+        this.blockMap.set(name, block);
+        eve.emit("open-hud", name);
+        this.updateBlocks(name);
+      });
+    });
   }
-  createCube() {
+  updateBlocks(name: string) {
     const material = new MeshStandardMaterial({
       color: new Color(0xffffff),
       metalness: 0.5,
@@ -42,74 +95,160 @@ class Three extends BaseScene<{}, ThreeState> {
       // transparent: true,
       // opacity: 0.7,
     });
+
+    const block: BlockDetail | undefined = this.blockMap.get(name);
+
+    console.log(block);
+
+    const blockName = `${name}-detail`;
+    let group: Group | undefined = this.scene.getObjectByName(
+      blockName
+    ) as Group;
+
+    if (!group) {
+      group = new Group();
+      group.name = blockName;
+      // group.rotateX(-Math.PI / 2);
+      this.scene.add(group);
+    } else group.children = [];
+
+    setTimeout(() => {
+      block?.a.forEach((a) => {
+        const pts: Vector2[] = [];
+        a.p.forEach((p) => pts.push(new Vector2(Number(p.x), Number(p.y))));
+        const base = new Shape(pts);
+        // const lineGeo = new BufferGeometry().setFromPoints(pts);
+        const building = new ExtrudeBufferGeometry(base, {
+          bevelEnabled: false,
+          steps: a.c,
+          depth: a.h * a.c,
+        });
+        const buildingMesh = new Mesh(building, material);
+        buildingMesh.name = "buildings";
+        building.rotateX(-Math.PI / 2);
+        building.translate(0, 53.3, 0);
+        buildingMesh.castShadow = true;
+        buildingMesh.receiveShadow = true;
+        group?.add(buildingMesh);
+        // for (let i = 1; i <= a.c; i++) {
+        //   const line = new Line(lineGeo, lineMat);
+        //   line.rotateX(-Math.PI / 2);
+        //   line.translateZ(Number(a.h) * i);
+        //   line.translateX(-600);
+        //   this.scene.add(line);
+        // }
+      });
+
+      block?.b.forEach((b) => {
+        const pts: Vector2[] = [];
+
+        b.forEach((p) => pts.push(new Vector2(Number(p.x), Number(p.y))));
+        const base = new Shape(pts);
+
+        const building = new ExtrudeBufferGeometry(base, {
+          bevelEnabled: false,
+          steps: 1,
+          depth: 0.45,
+        });
+        building.rotateX(-Math.PI / 2);
+        building.translate(0, 53.3, 0);
+
+        const buildingMesh = new Mesh(building, material);
+        buildingMesh.name = "block";
+        buildingMesh.castShadow = true;
+        buildingMesh.receiveShadow = true;
+
+        group?.add(buildingMesh);
+      });
+
+      // block?.t.forEach((t) => {
+      //   const loc = new Vector3(t.p.x, t.p.y, 3);
+      //   const tree = new SphereGeometry(Number(t.s));
+
+      //   tree.translate(loc.x, loc.y, loc.z);
+      //   tree.rotateX(-Math.PI / 2);
+      //   tree.translate(0, 53.5, 0);
+
+      //   const treeMesh = new Mesh(tree, material);
+      //   treeMesh.castShadow = true;
+      //   treeMesh.receiveShadow = true;
+      //   group?.add(treeMesh);
+      // });
+    }, 1000);
+  }
+  createCube() {
     // const lineMat = new LineBasicMaterial({ color: new Color(0x000000) });
 
-    model.a.forEach((a) => {
-      const pts: Vector2[] = [];
+    let elf: Object3D[];
 
-      a.p.forEach((p) => pts.push(new Vector2(Number(p.x), Number(p.y))));
-      const base = new Shape(pts);
-
-      // const lineGeo = new BufferGeometry().setFromPoints(pts);
-
-      const building = new ExtrudeBufferGeometry(base, {
-        bevelEnabled: false,
-        steps: a.c,
-        depth: Number(a.h) * a.c,
-      });
-      building.rotateX(-Math.PI / 2);
-      building.translate(-800, 0, 150);
-
-      const buildingMesh = new Mesh(building, material);
-      buildingMesh.name = "buildings";
-      buildingMesh.castShadow = true;
-      buildingMesh.receiveShadow = true;
-
-      this.scene.add(buildingMesh);
-
-      // for (let i = 1; i <= a.c; i++) {
-      //   const line = new Line(lineGeo, lineMat);
-      //   line.rotateX(-Math.PI / 2);
-      //   line.translateZ(Number(a.h) * i);
-      //   line.translateX(-600);
-      //   this.scene.add(line);
-      // }
+    var loadingManager = new LoadingManager(() => {
+      elf.forEach((el) => this.scene.add(el));
+      // this.scene.add(elf);
     });
 
-    model.b.forEach((b) => {
-      const pts: Vector2[] = [];
-
-      b.forEach((p) => pts.push(new Vector2(Number(p.x), Number(p.y))));
-      const base = new Shape(pts);
-
-      const building = new ExtrudeBufferGeometry(base, {
-        bevelEnabled: false,
-        steps: 1,
-        depth: 0.45,
+    var loader = new ColladaLoader(loadingManager);
+    loader.load("/base.dae", (collada) => {
+      elf = collada.scene.children.map((m) => {
+        let params: MeshStandardMaterialParameters;
+        switch (m.name) {
+          // case "water": {
+          //   params = {
+          //     color: new Color(0x738ad1),
+          //     metalness: 0.14,
+          //     roughness: 0.01,
+          //     side: 0,
+          //     transparent: true,
+          //     opacity: 0.7,
+          //   };
+          //   break;
+          // }
+          // case "base": {
+          //   params = {
+          //     color: new Color(0xb3b3b3),
+          //     metalness: 0.5,
+          //     roughness: 0.8,
+          //     side: 0,
+          //   };
+          //   break;
+          // }
+          // case "beach": {
+          //   params = {
+          //     color: new Color(0xebd9a2),
+          //     metalness: 0.5,
+          //     roughness: 0.8,
+          //     side: 0,
+          //   };
+          //   break;
+          // }
+          // case "green": {
+          //   params = {
+          //     color: new Color(0xa8ca81),
+          //     metalness: 0.5,
+          //     roughness: 0.8,
+          //     side: 0,
+          //   };
+          //   break;
+          // }
+          default: {
+            params = {
+              color: new Color(0xffffff),
+              metalness: 0.5,
+              roughness: 1,
+              side: 0,
+              // transparent: true,
+              // opacity: 0.7,
+            };
+            break;
+          }
+        }
+        const material = new MeshStandardMaterial(params);
+        const mesh = m as Mesh;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.material = material;
+        mesh.rotateX(-Math.PI / 2);
+        return mesh;
       });
-      building.rotateX(-Math.PI / 2);
-      building.translate(-800, 0, 150);
-
-      const buildingMesh = new Mesh(building, material);
-      buildingMesh.name = "block";
-      buildingMesh.castShadow = true;
-      buildingMesh.receiveShadow = true;
-
-      this.scene.add(buildingMesh);
-    });
-
-    model.t.forEach((t) => {
-      const loc = new Vector3(Number(t.p.x), Number(t.p.y), 3);
-      const tree = new SphereGeometry(Number(t.s));
-
-      tree.translate(loc.x, loc.y, loc.z);
-      tree.rotateX(-Math.PI / 2);
-      tree.translate(-800, 0, 150);
-
-      const treeMesh = new Mesh(tree, material);
-      treeMesh.castShadow = true;
-      treeMesh.receiveShadow = true;
-      this.scene.add(treeMesh);
     });
   }
 }
