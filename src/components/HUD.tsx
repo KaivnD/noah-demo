@@ -1,18 +1,14 @@
 import React, { Component } from "react";
-import {
-  Slider,
-  SvgIcon,
-  AppBar,
-  Tabs,
-  Tab,
-  Typography,
-  Box,
-} from "@material-ui/core";
+import { SvgIcon, Tabs, Tab, Box, Button } from "@material-ui/core";
 import { StyleSheet, css } from "aphrodite";
-import { Phone, Favorite, PersonPin } from "@material-ui/icons";
+import {
+  InfoOutlined,
+  SettingsOutlined,
+  WidgetsOutlined,
+} from "@material-ui/icons";
 
-import eve from "../libs/eve";
 import theme from "../themes/default";
+import eve from "../libs/eve";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -33,13 +29,16 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`full-width-tab-${index}`}
       {...other}
     >
-      123
+      {children}
     </Box>
   );
 }
 
 interface HUDState {
   page: number;
+  open: boolean;
+  expand: boolean;
+  info: string;
 }
 
 export class HUD extends Component<{}, HUDState> {
@@ -48,7 +47,17 @@ export class HUD extends Component<{}, HUDState> {
 
     this.state = {
       page: 0,
+      open: false,
+      expand: false,
+      info: "",
     };
+
+    eve.on("open-hud", (msg) => {
+      if (this.state.open) this.setState({ open: false });
+      setTimeout(() => {
+        this.setState({ open: true, info: msg });
+      }, 300);
+    });
   }
   render() {
     const styles = StyleSheet.create({
@@ -67,15 +76,18 @@ export class HUD extends Component<{}, HUDState> {
       },
       dataPanel: {
         position: "absolute",
-        width: "360px",
-        top: "60px",
-        right: "60px",
-        bottom: "60px",
-        padding: "0 2em",
+        width: "500px",
+        top: "30px",
+        right: "30px",
+        bottom: "30px",
+        transform: this.state.open ? "translateY(0px)" : "translateY(-100px)",
+        opacity: this.state.open ? 1 : 0,
+        height: this.state.expand ? "auto" : "300px",
         backgroundColor: "#92b3ec26",
         borderRadius: "9px",
         boxShadow: "0 0 12px 9px #0000001a",
         pointerEvents: "auto",
+        transition: "all 300ms ease-in-out",
         "@media (max-width: 600px)": {
           width: "100%",
           height: "100px",
@@ -86,27 +98,27 @@ export class HUD extends Component<{}, HUDState> {
         },
       },
     });
-    const marks = [
-      {
-        value: 0,
-        label: "0°C",
-      },
-      {
-        value: 20,
-        label: "20°C",
-      },
-      {
-        value: 37,
-        label: "37°C",
-      },
-      {
-        value: 100,
-        label: "100°C",
-      },
-    ];
-    function valuetext(value: number) {
-      return `${value}°C`;
-    }
+    // const marks = [
+    //   {
+    //     value: 0,
+    //     label: "0°C",
+    //   },
+    //   {
+    //     value: 20,
+    //     label: "20°C",
+    //   },
+    //   {
+    //     value: 37,
+    //     label: "37°C",
+    //   },
+    //   {
+    //     value: 100,
+    //     label: "100°C",
+    //   },
+    // ];
+    // function valuetext(value: number) {
+    //   return `${value}°C`;
+    // }
 
     return (
       <>
@@ -150,12 +162,19 @@ export class HUD extends Component<{}, HUDState> {
                 textColor="secondary"
                 aria-label="icon label tabs example"
               >
-                <Tab icon={<Phone />} label="RECENTS" />
-                <Tab icon={<Favorite />} label="FAVORITES" />
-                <Tab icon={<PersonPin />} label="NEARBY" />
+                <Tab icon={<InfoOutlined />} aria-label="RECENTS" />
+                <Tab icon={<WidgetsOutlined />} aria-label="FAVORITES" />
+                <Tab icon={<SettingsOutlined />} aria-label="NEARBY" />
               </Tabs>
               <TabPanel value={this.state.page} index={0} dir={theme.direction}>
-                Item One
+                {this.state.info}
+                <Button
+                  onClick={() => eve.emit("block-reload", this.state.info)}
+                  variant="outlined"
+                  style={{ margin: "1em 0" }}
+                >
+                  Start | 开始体验
+                </Button>
               </TabPanel>
               <TabPanel value={this.state.page} index={1} dir={theme.direction}>
                 Item Two
