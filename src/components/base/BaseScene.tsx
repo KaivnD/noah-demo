@@ -25,6 +25,9 @@ import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
+import TWEEN from "@tweenjs/tween.js";
+
+import eve from "../../libs/eve";
 
 interface BaseSceneState {
   showHelper: boolean;
@@ -64,7 +67,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     const retio = window.innerWidth / window.innerHeight;
 
     this.camera = new PerspectiveCamera(70, retio, 1, 10000);
-    this.camera.position.set(256, 300, 0);
+    this.camera.position.set(0, 1400, 1200);
     this.scene.add(this.camera);
 
     this.godSayNeedHelp();
@@ -126,19 +129,23 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
 
   onTouchend(e: MouseEvent): any {
     this.clicked = false;
+    this.selectedObject = null;
   }
 
   onTouchStart(e: MouseEvent): any {
     if (e.button !== 0) return;
     this.clicked = true;
     this.checkIntersection();
+
+    if (!this.selectedObject) return;
+    eve.emit("object-clicked", this.selectedObject.name, this.selectedObject);
   }
 
   godSayNeedControls() {
     // Controls
     const controls = new OrbitControls(this.camera, this.renderer.domElement);
     controls.target.set(0, 0, 0);
-    controls.maxDistance = 1000;
+    controls.maxDistance = 2000;
     controls.minDistance = 100;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.1;
@@ -180,7 +187,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     this.directionalLight1.shadow.mapSize.width = 2048;
     this.directionalLight1.shadow.mapSize.height = 2048;
 
-    const d = 300;
+    const d = 800;
 
     this.directionalLight1.shadow.camera.right = d;
     this.directionalLight1.shadow.camera.left = -d;
@@ -188,7 +195,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     this.directionalLight1.shadow.camera.bottom = -d;
     this.directionalLight1.shadow.camera.near = 0;
     this.directionalLight1.shadow.camera.far = 5000;
-    // directionalLight1.shadow.camera.fov = 2000;
+    // directionalLight1.shadow.camera.fov = 2000;90
 
     const shadowCameraHelper = new CameraHelper(
       this.directionalLight1.shadow.camera
@@ -248,6 +255,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
   animate = () => {
     requestAnimationFrame(this.animate);
     this.composer.render();
+    TWEEN.update();
   };
 
   componentWillUnmount() {
