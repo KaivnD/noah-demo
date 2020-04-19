@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { SvgIcon, Typography, Button } from "@material-ui/core";
 import { StyleSheet, css } from "aphrodite";
 import eve from "../libs/eve";
+import isDev from "../libs/isDev";
 
 interface LoaderProp {
   onLaunch?: () => void;
@@ -35,6 +36,7 @@ class Loader extends Component<LoaderProp, LoaderState> {
     };
     const styles = StyleSheet.create({
       paper: {
+        display: isDev() ? "none" : "inherit",
         position: "absolute",
         textAlign: "center",
         top: "50%",

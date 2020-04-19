@@ -28,6 +28,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import TWEEN from "@tweenjs/tween.js";
 
 import eve from "../../libs/eve";
+import isDev from "../../libs/isDev";
 
 interface BaseSceneState {
   showHelper: boolean;
@@ -68,9 +69,10 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     const retio = window.innerWidth / window.innerHeight;
 
     this.camera = new PerspectiveCamera(70, retio, 1, 10000);
-    this.camera.position.set(0, 300, 0);
-    this.camera.rotateX(-Math.PI / 2);
-    // this.camera.position.set(0, 1400, 1200);
+    if (!isDev()) {
+      this.camera.position.set(0, 300, 0);
+      this.camera.rotateX(-Math.PI / 2);
+    } else this.camera.position.set(0, 1400, 1200);
     this.scene.add(this.camera);
 
     this.godSayNeedHelp();
@@ -155,7 +157,8 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.4;
     this.controls.maxPolarAngle = Math.PI / 2 - 0.15;
-    this.controls.enabled = false;
+    if (!isDev()) this.controls.enabled = false;
+
     this.controls.update();
   }
 

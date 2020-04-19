@@ -21,6 +21,7 @@ import eve from "../libs/eve";
 
 import TWEEN from "@tweenjs/tween.js";
 
+import isDev from "../libs/isDev";
 interface ThreeState {
   showHelper: boolean;
   clicked: boolean;
@@ -63,30 +64,31 @@ class Three extends BaseScene<ThreeProp, ThreeState> {
 
     this.blockMap = new Map();
 
-    eve.on("start-clicked", () => {
-      if (!this.camera) return;
-      var tween1 = new TWEEN.Tween(this.camera.rotation).to(
-        { x: -0.849, y: 0, z: 0 },
-        1500
-      );
-      // tween.delay(10);
-      tween1.start();
-      // tween1.easing(TWEEN.Easing.Exponential.InOut);
+    if (!isDev()) {
+      eve.on("start-clicked", () => {
+        if (!this.camera) return;
+        var tween1 = new TWEEN.Tween(this.camera.rotation).to(
+          { x: -0.865, y: 0, z: 0 },
+          1500
+        );
+        // tween.delay(10);
+        tween1.start();
+        tween1.easing(TWEEN.Easing.Exponential.InOut);
 
-      var tween2 = new TWEEN.Tween(this.camera.position).to(
-        { x: 0, y: 1400, z: 1200 },
-        1500
-      );
-      tween2.delay(10);
-      tween2.start();
-      // tween2.easing(TWEEN.Easing.Exponential.InOut);
+        var tween2 = new TWEEN.Tween(this.camera.position).to(
+          { x: 0, y: 1400, z: 1200 },
+          1500
+        );
+        tween2.start();
+        tween2.easing(TWEEN.Easing.Exponential.InOut);
 
-      setTimeout(() => {
-        this.scene.add(this.designBase);
-        this.designBase.visible = true;
-        this.controls.enabled = true;
-      }, 2000);
-    });
+        setTimeout(() => {
+          this.scene.add(this.designBase);
+          this.designBase.visible = true;
+          this.controls.enabled = true;
+        }, 2000);
+      });
+    }
 
     eve.on("changeLightPos", (v) => {
       if (!this.directionalLight1) return;
