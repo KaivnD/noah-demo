@@ -30,11 +30,7 @@ class App extends Component<{}, { loading: boolean }> {
         <div className={css(styles.root)}>
           <CssBaseline />
           <HUD>
-            <Loader
-              onLaunch={() => {
-                this.setState({ loading: false });
-              }}
-            />
+            <Loader />
             <Three />
           </HUD>
         </div>
