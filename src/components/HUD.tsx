@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { SvgIcon, Tabs, Tab, Box, Button } from "@material-ui/core";
+import { Tabs, Tab, Box, Button } from "@material-ui/core";
 import { StyleSheet, css } from "aphrodite";
 import {
   InfoOutlined,
@@ -52,12 +52,12 @@ export class HUD extends Component<{}, HUDState> {
       info: "",
     };
 
-    eve.on("open-hud", (msg) => {
-      if (this.state.open) this.setState({ open: false });
-      setTimeout(() => {
-        this.setState({ open: true, info: msg });
-      }, 300);
-    });
+    // eve.on("open-hud", (msg) => {
+    //   if (this.state.open) this.setState({ open: false });
+    //   setTimeout(() => {
+    //     this.setState({ open: true, info: msg });
+    //   }, 300);
+    // });
   }
   render() {
     const styles = StyleSheet.create({
@@ -135,24 +135,6 @@ export class HUD extends Component<{}, HUDState> {
             inputProps={{ "aria-label": "primary checkbox" }}
           /> */}
           <div className={css(styles.wrap)}>
-            <div>
-              <SvgIcon
-                style={{ fontSize: "128px", position: "absolute" }}
-                viewBox="0 0 1024 1024"
-              >
-                <g
-                  style={{
-                    fill: "rgba(255,255,255,0.1)",
-                    stroke: "#fff",
-                    strokeWidth: 3,
-                  }}
-                >
-                  <path d="M371.5,612.5v-200a40,40,0,0,1,80,0v200a160,160,0,0,0,320,0v-400a40,40,0,0,1,80,0v400c0,132.55-107.45,240-240,240S371.5,745.05,371.5,612.5Z" />
-                  <path d="M651.5,412.5v40a40,40,0,0,1-80,0v-40a160,160,0,0,0-320,0v400a40,40,0,0,1-80,0v-400c0-132.55,107.45-240,240-240S651.5,280,651.5,412.5Z" />
-                  <path d="M571.5,612.3a40,40,0,1,1,39.8,40.2,40,40,0,0,1-39.8-40.2Z" />
-                </g>
-              </SvgIcon>
-            </div>
             <div className={css(styles.dataPanel)}>
               <Tabs
                 value={this.state.page}

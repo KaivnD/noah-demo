@@ -3,12 +3,12 @@ import {
   Color,
   MeshStandardMaterial,
   LoadingManager,
-  Object3D,
   MeshStandardMaterialParameters,
   Vector2,
   Shape,
   ExtrudeBufferGeometry,
   Group,
+  Object3D,
 } from "three";
 
 import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader.js";
@@ -18,6 +18,8 @@ import { BaseScene } from "./base/BaseScene";
 import axios from "axios";
 
 import eve from "../libs/eve";
+
+import TWEEN from "@tweenjs/tween.js";
 
 interface ThreeState {
   showHelper: boolean;
@@ -61,6 +63,31 @@ class Three extends BaseScene<ThreeProp, ThreeState> {
 
     this.blockMap = new Map();
 
+    eve.on("start-clicked", () => {
+      if (!this.camera) return;
+      var tween1 = new TWEEN.Tween(this.camera.rotation).to(
+        { x: -0.849, y: 0, z: 0 },
+        1500
+      );
+      // tween.delay(10);
+      tween1.start();
+      // tween1.easing(TWEEN.Easing.Exponential.InOut);
+
+      var tween2 = new TWEEN.Tween(this.camera.position).to(
+        { x: 0, y: 1400, z: 1200 },
+        1500
+      );
+      tween2.delay(10);
+      tween2.start();
+      // tween2.easing(TWEEN.Easing.Exponential.InOut);
+
+      setTimeout(() => {
+        this.scene.add(this.designBase);
+        this.designBase.visible = true;
+        this.controls.enabled = true;
+      }, 2000);
+    });
+
     eve.on("changeLightPos", (v) => {
       if (!this.directionalLight1) return;
       this.directionalLight1.position.setY(v);
@@ -71,8 +98,8 @@ class Three extends BaseScene<ThreeProp, ThreeState> {
       axios.get(`/demo/${name}.json`).then((res) => {
         const block: BlockDetail = res.data;
         this.blockMap.set(name, block);
-        eve.emit("open-hud", name);
-        // this.updateBlocks(name);
+        // eve.emit("open-hud", name);
+        this.updateBlocks(name);
       });
     });
 
@@ -176,19 +203,20 @@ class Three extends BaseScene<ThreeProp, ThreeState> {
       // });
     }, 1000);
   }
+
+  designBase!: Group;
   createCube() {
     // const lineMat = new LineBasicMaterial({ color: new Color(0x000000) });
-
-    let elf: Object3D[];
-
-    var loadingManager = new LoadingManager(() => {
-      elf.forEach((el) => this.scene.add(el));
-      // this.scene.add(elf);
+    let base: Object3D[] = [];
+    const loadingManager = new LoadingManager(() => {
+      this.designBase = new Group();
+      this.designBase.visible = false;
+      base.forEach((m) => this.designBase.add(m));
     });
 
-    var loader = new ColladaLoader(loadingManager);
+    const loader = new ColladaLoader(loadingManager);
     loader.load("/base.dae", (collada) => {
-      elf = collada.scene.children.map((m) => {
+      collada.scene.children.forEach((m) => {
         let params: MeshStandardMaterialParameters;
         switch (m.name) {
           // case "water": {
@@ -247,7 +275,7 @@ class Three extends BaseScene<ThreeProp, ThreeState> {
         mesh.receiveShadow = true;
         mesh.material = material;
         mesh.rotateX(-Math.PI / 2);
-        return mesh;
+        base.push(mesh);
       });
     });
   }

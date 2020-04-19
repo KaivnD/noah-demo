@@ -1,4 +1,4 @@
-import React, { Component, ReactNode } from "react";
+import React, { Component } from "react";
 import Three from "./components/scene";
 import { CssBaseline, ThemeProvider } from "@material-ui/core";
 import { StyleSheet, css } from "aphrodite";
@@ -18,21 +18,6 @@ class App extends Component<{}, { loading: boolean }> {
     //   this.setState({ loading: false });
     // }, 1000);
   }
-  get currentView(): ReactNode {
-    if (this.state.loading)
-      return (
-        <Loader
-          onLaunch={() => {
-            this.setState({ loading: false });
-          }}
-        />
-      );
-    return (
-      <HUD>
-        <Three />
-      </HUD>
-    );
-  }
   render() {
     const styles = StyleSheet.create({
       root: {
@@ -44,7 +29,14 @@ class App extends Component<{}, { loading: boolean }> {
       <ThemeProvider theme={theme}>
         <div className={css(styles.root)}>
           <CssBaseline />
-          {this.currentView}
+          <HUD>
+            <Loader
+              onLaunch={() => {
+                this.setState({ loading: false });
+              }}
+            />
+            <Three />
+          </HUD>
         </div>
       </ThemeProvider>
     );

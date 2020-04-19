@@ -49,6 +49,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
   clicked: boolean = false;
   selectedObject: Object3D | null = null;
   selectedObjects: Object3D[] = [];
+  controls!: OrbitControls;
 
   constructor(prop: P) {
     super(prop);
@@ -67,7 +68,9 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     const retio = window.innerWidth / window.innerHeight;
 
     this.camera = new PerspectiveCamera(70, retio, 1, 10000);
-    this.camera.position.set(0, 1400, 1200);
+    this.camera.position.set(0, 300, 0);
+    this.camera.rotateX(-Math.PI / 2);
+    // this.camera.position.set(0, 1400, 1200);
     this.scene.add(this.camera);
 
     this.godSayNeedHelp();
@@ -143,16 +146,17 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
 
   godSayNeedControls() {
     // Controls
-    const controls = new OrbitControls(this.camera, this.renderer.domElement);
-    controls.target.set(0, 0, 0);
-    controls.maxDistance = 2000;
-    controls.minDistance = 100;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.1;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.4;
-    controls.maxPolarAngle = Math.PI / 2 - 0.15;
-    controls.update();
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.target.set(0, 0, 0);
+    this.controls.maxDistance = 2000;
+    this.controls.minDistance = 100;
+    this.controls.autoRotate = true;
+    this.controls.autoRotateSpeed = 0.1;
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.4;
+    this.controls.maxPolarAngle = Math.PI / 2 - 0.15;
+    this.controls.enabled = false;
+    this.controls.update();
   }
 
   godSayNeedHelp() {
@@ -168,7 +172,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
 
     const axes = new AxesHelper(100);
     axes.name = "axes";
-    axes.visible = this.state.showHelper;
+    axes.visible = false;
     axes.position.set(0, 0, 0);
     this.scene.add(axes);
   }
