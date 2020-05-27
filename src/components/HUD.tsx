@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Tabs, Tab, Box, Button } from "@material-ui/core";
+import { Tabs, Tab, Box, Button, Slider, Typography, FormControl, InputLabel, MenuItem, FormHelperText, Select, Divider } from "@material-ui/core";
 import { StyleSheet, css } from "aphrodite";
 import {
   InfoOutlined,
@@ -39,6 +39,23 @@ interface HUDState {
   open: boolean;
   expand: boolean;
   info: string;
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+}
+
+interface ParamItem {
+  name: string
+  default: number
+  min: number
+  max: number
+  step: number
+  marks: {value: number, label: string}[]
+  valueText: (value: number) => string
+  value: number
+  onChange: (e: React.ChangeEvent<{}>, v: number | number[]) => void
 }
 
 export class HUD extends Component<{}, HUDState> {
@@ -50,14 +67,21 @@ export class HUD extends Component<{}, HUDState> {
       open: false,
       expand: false,
       info: "",
+      a: 2,
+      b: 1,
+      c: 1,
+      d: 1,
+      e: 1
     };
 
-    // eve.on("open-hud", (msg) => {
-    //   if (this.state.open) this.setState({ open: false });
-    //   setTimeout(() => {
-    //     this.setState({ open: true, info: msg });
-    //   }, 300);
-    // });
+  }
+  componentDidMount() {
+    eve.on("open-hud", (msg) => {
+      // if (this.state.open) this.setState({ open: false });
+      setTimeout(() => {
+        this.setState({ open: true, info: msg });
+      }, 300);
+    });
   }
   render() {
     const styles = StyleSheet.create({
@@ -76,105 +100,193 @@ export class HUD extends Component<{}, HUDState> {
       },
       dataPanel: {
         position: "absolute",
-        width: "500px",
-        top: "30px",
-        right: "30px",
-        bottom: "30px",
-        transform: this.state.open ? "translateY(0px)" : "translateY(-100px)",
+        width: "360px",
+        right: '0',
+        top: "0",
+        bottom: "0",
+        padding: '3em',
         opacity: this.state.open ? 1 : 0,
-        height: this.state.expand ? "auto" : "300px",
+        height: "100%",
         backgroundColor: "#92b3ec26",
-        borderRadius: "9px",
         boxShadow: "0 0 12px 9px #0000001a",
-        pointerEvents: "auto",
-        transition: "all 300ms ease-in-out",
-        "@media (max-width: 600px)": {
-          width: "100%",
-          height: "100px",
-          top: "unset",
-          left: "0",
-          right: "0",
-          bottom: "0",
-        },
+        pointerEvents: this.state.open ? 'auto' : "none",
+        transition: "all 300ms ease-in-out"
       },
     });
-    // const marks = [
-    //   {
-    //     value: 0,
-    //     label: "0°C",
-    //   },
-    //   {
-    //     value: 20,
-    //     label: "20°C",
-    //   },
-    //   {
-    //     value: 37,
-    //     label: "37°C",
-    //   },
-    //   {
-    //     value: 100,
-    //     label: "100°C",
-    //   },
-    // ];
-    // function valuetext(value: number) {
-    //   return `${value}°C`;
-    // }
+
+    const form: ParamItem[] = [
+      {
+        name: "窗面数量",
+        default: 2,
+        min: 2,
+        max: 4,
+        step: 1,
+        marks: [
+          {
+            value: 2,
+            label: "2个",
+          },
+          {
+            value: 3,
+            label: "3个",
+          },
+          {
+            value: 4,
+            label: "4个",
+          }
+        ],
+        valueText: (value: number) => `${value}个`,
+        value: this.state.a,
+        onChange: (e, v) => {
+          if (v instanceof Array) return
+          const val = v as number
+          this.setState({a: val})
+        }
+      },
+      {
+        name: "窗洞排列",
+        default: 1,
+        min: 1,
+        max: 3,
+        step: 1,
+        marks: [
+          {
+            value: 1,
+            label: "棋盘菱形",
+          },
+          {
+            value: 2,
+            label: "竖向对齐",
+          },
+          {
+            value: 3,
+            label: "完全随机",
+          }
+        ],
+        valueText: (value: number) => `${value}个`,
+        value: this.state.b,
+        onChange: (e, v) => {
+          if (v instanceof Array) return
+          const val = v as number
+          this.setState({b: val})
+        }
+      },
+      {
+        name: "窗洞形式",
+        default: 1,
+        min: 1,
+        max: 3,
+        step: 1,
+        marks: [
+          {
+            value: 1,
+            label: "幕墙",
+          },
+          {
+            value: 2,
+            label: "普通窗洞",
+          },
+          {
+            value: 3,
+            label: "凸窗",
+          }
+        ],
+        valueText: (value: number) => `${value}个`,
+        value: this.state.c,
+        onChange: (e, v) => {
+          if (v instanceof Array) return
+          const val = v as number
+          this.setState({c: val})
+        }
+      },
+      {
+        name: "墙面形式",
+        default: 1,
+        min: 1,
+        max: 3,
+        step: 1,
+        marks: [
+          {
+            value: 1,
+            label: "无墙面装饰",
+          },
+          {
+            value: 2,
+            label: "竖向",
+          },
+          {
+            value: 3,
+            label: "横向",
+          }
+        ],
+        valueText: (value: number) => `${value}个`,
+        value: this.state.d,
+        onChange: (e, v) => {
+          if (v instanceof Array) return
+          const val = v as number
+          this.setState({d: val})
+        }
+      },
+      {
+        name: "窗洞细分",
+        default: 1,
+        min: 1,
+        max: 2,
+        step: 1,
+        marks: [
+          {
+            value: 1,
+            label: "普通分割",
+          },
+          {
+            value: 2,
+            label: "竖向",
+          },
+        ],
+        valueText: (value: number) => `${value}个`,
+        value: this.state.e,
+        onChange: (e, v) => {
+          if (v instanceof Array) return
+          const val = v as number
+          this.setState({e: val})
+        }
+      },
+    ]
+
+
 
     return (
       <>
         {this.props.children}
         <div className={css(styles.root)}>
-          {/* <Switch
-            checked={this.state.checkedB}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              this.setState({ checkedB: event.target.checked });
-              eve.emit("toggleHelper");
-            }}
-            color="primary"
-            name="checkedB"
-            inputProps={{ "aria-label": "primary checkbox" }}
-          /> */}
           <div className={css(styles.wrap)}>
             <div className={css(styles.dataPanel)}>
-              <Tabs
-                value={this.state.page}
-                onChange={(e, v) => this.setState({ page: v })}
-                variant="fullWidth"
-                indicatorColor="secondary"
-                textColor="secondary"
-                aria-label="icon label tabs example"
-              >
-                <Tab icon={<InfoOutlined />} aria-label="RECENTS" />
-                <Tab icon={<WidgetsOutlined />} aria-label="FAVORITES" />
-                <Tab icon={<SettingsOutlined />} aria-label="NEARBY" />
-              </Tabs>
-              <TabPanel value={this.state.page} index={0} dir={theme.direction}>
-                {this.state.info}
-                <Button
-                  onClick={() => eve.emit("block-reload", this.state.info)}
-                  variant="outlined"
-                  style={{ margin: "1em 0" }}
-                >
-                  Start | 开始体验
-                </Button>
-              </TabPanel>
-              <TabPanel value={this.state.page} index={1} dir={theme.direction}>
-                Item Two
-              </TabPanel>
-              <TabPanel value={this.state.page} index={2} dir={theme.direction}>
-                Item Three
-              </TabPanel>
-              {/* <Slider
-                defaultValue={20}
-                getAriaValueText={valuetext}
-                aria-labelledby="discrete-slider-custom"
-                step={10}
-                valueLabelDisplay="auto"
-                marks={marks}
-                onChangeCommitted={(e, v) => {
-                  eve.emit("changeLightPos", v);
-                }}
-              /> */}
+              {
+                form.map((item, i) => (
+                  <div key={i} style={{margin: '2em 0'}}>
+                    <Typography id="discrete-slider" gutterBottom>
+                      {item.name}
+                    </Typography>
+                    <Slider
+                      defaultValue={item.default}
+                      min={item.min}
+                      max={item.max}
+                      step={item.step}
+                      marks={item.marks}
+                      aria-labelledby="discrete-slider"
+                      // style={{width: '30%'}}
+                      getAriaValueText={item.valueText}
+                      valueLabelDisplay="auto"
+                      value={item.value}
+                      onChangeCommitted={item.onChange}
+                    />
+                    <Divider/>
+                  </div>
+                ))
+              }
+              <Button variant="contained" color="primary" fullWidth onClick={() => {
+                console.log(this.state)
+              }}>提交</Button>
             </div>
           </div>
         </div>

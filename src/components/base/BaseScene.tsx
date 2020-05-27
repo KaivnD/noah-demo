@@ -68,11 +68,11 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
 
     const retio = window.innerWidth / window.innerHeight;
 
-    this.camera = new PerspectiveCamera(70, retio, 1, 10000);
+    this.camera = new PerspectiveCamera(60, retio, 1, 500);
     if (!isDev()) {
       this.camera.position.set(0, 300, 0);
       this.camera.rotateX(-Math.PI / 2);
-    } else this.camera.position.set(0, 1400, 1200);
+    } else this.camera.position.set(0, 10, 30);
     this.scene.add(this.camera);
 
     this.godSayNeedHelp();
@@ -127,7 +127,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     window.addEventListener("mousedown", (e) => this.onTouchStart(e));
     window.addEventListener("mouseup", (e) => this.onTouchend(e));
 
-    this.createCube();
+    this.createSceneObjects();
 
     this.animate();
   }
@@ -149,21 +149,20 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
   godSayNeedControls() {
     // Controls
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, 0, 0);
-    this.controls.maxDistance = 2000;
-    this.controls.minDistance = 100;
-    this.controls.autoRotate = true;
-    this.controls.autoRotateSpeed = 0.1;
+    this.controls.target.set(0, 6, 0);
+    this.controls.maxDistance = 100;
+    this.controls.minDistance = 10;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.4;
-    this.controls.maxPolarAngle = Math.PI / 2 - 0.15;
+    this.controls.maxPolarAngle = Math.PI / 2 - 0.05;
+    // this.controls.maxAzimuthAngle = Math.PI / 2
     if (!isDev()) this.controls.enabled = false;
 
     this.controls.update();
   }
 
   godSayNeedHelp() {
-    const grid = new GridHelper(2000, 100);
+    const grid = new GridHelper(1000, 100);
     grid.name = "grid";
     grid.position.y = 0;
     grid.visible = true;
@@ -191,17 +190,17 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     this.directionalLight1.castShadow = true;
     this.scene.add(this.directionalLight1);
 
-    this.directionalLight1.shadow.mapSize.width = 2048;
-    this.directionalLight1.shadow.mapSize.height = 2048;
+    this.directionalLight1.shadow.mapSize.width = 512;
+    this.directionalLight1.shadow.mapSize.height = 512;
 
-    const d = 800;
+    const d = 50;
 
     this.directionalLight1.shadow.camera.right = d;
     this.directionalLight1.shadow.camera.left = -d;
     this.directionalLight1.shadow.camera.top = d;
     this.directionalLight1.shadow.camera.bottom = -d;
     this.directionalLight1.shadow.camera.near = 0;
-    this.directionalLight1.shadow.camera.far = 5000;
+    this.directionalLight1.shadow.camera.far = 3000;
     // directionalLight1.shadow.camera.fov = 2000;90
 
     const shadowCameraHelper = new CameraHelper(
@@ -257,7 +256,7 @@ export abstract class BaseScene<P, S extends BaseSceneState> extends Component<
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
-  abstract createCube(): void;
+  abstract createSceneObjects(): void;
 
   animate = () => {
     requestAnimationFrame(this.animate);
