@@ -15,7 +15,7 @@
     "@types/react-dom": "^16.9.0",
     "@types/tween.js": "^18.5.0",
     "aphrodite": "^2.4.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "cross-env": "^7.0.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
